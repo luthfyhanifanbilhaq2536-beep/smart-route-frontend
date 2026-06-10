@@ -42,8 +42,10 @@
 
     <script>
         // MASUKKAN KREDENSIAL SUPABASE YANG SAMA DI SINI
-        const SUPABASE_URL = "LENGKAPI_DENGAN_PROJECT_URL_KAMU";
-        const SUPABASE_ANON_KEY = "LENGKAPI_DENGAN_ANON_KEY_KAMU";
+        const SUPABASE_URL = "https://smwothfhydhwptlqyemw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtd290aGZoeWRod3B0bHF5ZW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwOTA1NjMsImV4cCI6MjA5NjY2NjU2M30.wMmc0iFpLwAt2P5pGjl3EvCoHn79CjE6YqP0KfekPW4";
+
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const pusatKampus = [-7.3512, 108.2235];
