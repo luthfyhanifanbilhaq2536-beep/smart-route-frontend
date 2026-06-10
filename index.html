@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Route UMB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 50vh; width: 100%; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col h-screen">
+
+    <header class="bg-green-600 text-white p-4 text-center font-bold shadow-md">
+        🚚 Smart Route Optimization UMB
+    </header>
+
+    <div id="map" class="shadow-inner"></div>
+
+    <div class="p-4 flex-1 flex flex-col justify-between">
+        <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="font-semibold text-gray-700 mb-1">Status Operasional</h2>
+            <p class="text-sm text-gray-500">Titik TPS Terdeteksi: <span id="jumlah-tps" class="font-bold text-green-600">3</span> Titik</p>
+            <div class="mt-2 text-xs text-gray-400" id="urutan-jalan">
+                Klik tombol di bawah untuk menghitung rute terpendek via AI.
+            </div>
+        </div>
+
+        <button id="btn-hitung" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg active:scale-95 transition transform duration-150">
+            Hitung Rute Terpendek AI
+        </button>
+    </div>
+
+    <script>
+        // Lokasi Awal (Koordinat Kampus UMB Tasikmalaya)
+        const pusatKampus = [-7.3512, 108.2235]; 
+        
+        // Inisialisasi Peta Leaflet
+        const map = L.map('map').setView(pusatKampus, 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Simulasi Titik Lokasi TPS Kampus (Titik 0 adalah Pos Truk/Mulai)
+        const dataTPS = [
+            { id: "0", nama: "Pos Armada Truk", lat: -7.3512, lon: 108.2235 },
+            { id: "1", nama: "TPS Gedung A", lat: -7.3532, lon: 108.2245 },
+            { id: "2", nama: "TPS Laboratorium", lat: -7.3505, lon: 108.2215 },
+            { id: "3", nama: "TPS Kantin Belakang", lat: -7.3525, lon: 108.2210 }
+        ];
+
+        // Tampilkan Marker TPS di Peta
+        dataTPS.forEach((tps, index) => {
+            const warna = index === 0 ? 'blue' : 'red';
+            L.marker([tps.lat, tps.lon]).addTo(map)
+                .bindPopup(`<b>${tps.nama}</b>`);
+        });
+
+        // Aksi ketika tombol diklik
+        document.getElementById('btn-hitung').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-hitung');
+            btn.innerText = "⏳ Menghitung via Cloud AI...";
+            
+            // LINK API HUGGING FACE KAMU YANG SUDAH LIVE
+            const URL_API_HUGGINGFACE = "https://luthfy25-smart-route-backend.hf.space/optimasi-rute"; 
+
+            try {
+                const response = await fetch(URL_API_HUGGINGFACE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataTPS)
+                });
+                
+                const hasil = await response.json();
+                const ruteUrut = hasil.rute;
+
+                // Gambar Garis Rute di Peta
+                const koordinatGaris = ruteUrut.map(t => [t.lat, t.lon]);
+                const polyline = L.polyline(koordinatGaris, {color: 'green', weight: 5}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                // Tampilkan Teks Urutan di Layar HP
+                let teksUrutan = "Urutan Rute Optimal: <br>";
+                ruteUrut.forEach((t, i) => {
+                    teksUrutan += `${i+1}. <b>${t.nama}</b><br>`;
+                });
+                document.getElementById('urutan-jalan').innerHTML = teksUrutan;
+                
+            } catch (error) {
+                alert("Gagal terhubung ke AI Hugging Face. Cek koneksi internet!");
+                console.error(error);
+            } finally {
+                btn.innerText = "Hitung Rute Terpendek AI";
+            }
+        });
+    </script>
+</body>
+</html>
